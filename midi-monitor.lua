@@ -12,57 +12,56 @@
 
 engine.name = 'PolyPerc'
 
-local line_height = 8
-local line_offset = 16
 
 local devicepos = 1
 local mdevs = {}
 local midi_device
 local msg = {}
 
-local t = 0 -- last tap time
-local dt = 1 -- last tapped delta
+--local t = 0 -- last tap time
+--local dt = 1 -- last tapped delta
 local default_bpm = 90
 local tempo
 local running = false
 local clocking = false
 
-local SCREEN_FRAMERATE = 30
-local screen_dirty = true
 local blinkers = {false}
 local mute = true
 
+local midi_buffer = {}
+local midi_buffer_len = 256
+local buff_start = 1
+
+-- display grid setup
+local line_height = 8
+local line_offset = 16
 local col1 = 0
 local col2 = 11
 local col3 = 29
 local col4 = col3 + 18
 local col5 = col4 + 44
 local col6 = 128
---local lines = {{},{},{},{},{}}
-local midi_buffer = {}
-local midi_buffer_len = 256
-local buff_start = 1
 
-
--- Main
+-- 
 
 function blink_generator(x)
   while true do
-    --print (clock.get_beats() )
+      --print (clock.get_beats() )
     clock.sync(1/2)
-    --print (clock.get_beats() )
+      --print (clock.get_beats() )
     blinkers[x] = not blinkers[x]
-
     redraw()
   end
 end
 
+-- 
+-- INIT
+-- 
 
 function init()
   clear_midi_buffer()
-  --engine.hz(0)
   engine.amp(0)
-  _norns.rev_off()
+  --_norns.rev_off()
 
   connect()
   get_midi_names()
@@ -94,28 +93,21 @@ function init()
   clock.set_source(1)
   params:set("clock_source", 2)
   params:set("clock_tempo", default_bpm)
+  
   --tempo = util.round (clock.get_tempo(), 1)
   --tempo2 = util.round (params:get("clock_tempo"),1)
   --print(tempo)
   --print(tempo2)
 
-
-  -- clock.run(function()
-  --   while true do
-  --     clock.sync(1/8)
-  --     redraw()
-      
-  --   end
-  -- end)
   
   -- Render Style
   screen.level(15)
   screen.aa(0)
   screen.line_width(1)
-  
-  -- Render
 
 end
+-- END INIT
+
 
 function get_midi_names()
   -- Get a list of grid devices
@@ -123,6 +115,7 @@ function get_midi_names()
     mdevs[id] = device.name
   end
 end
+
 function print_midi_names()
   -- Get a list of grid devices
   print ("MIDI Devices:")
@@ -149,12 +142,9 @@ end
 
 function midi_event(data)
   msg = midi.to_msg(data)
-  --tab.print(msg)
   if msg.type == "start" then
-    
       clock.transport.reset()
       clock.transport.start()
-      
   elseif msg.type == "continue" then
     if running then 
       clock.transport.stop()
@@ -173,7 +163,7 @@ function midi_event(data)
       tempo = util.round (clock.get_tempo(), 1)
     end
   else
-  --  {msg.ch, msg.note , msg.vel, msg.type, msg.val}
+    -- {msg.ch, msg.note , msg.vel, msg.type, msg.val}
     temp_msg = {}
     if msg.ch then temp_msg[1] = msg.ch else temp_msg[1] = "" end
     if msg.note then temp_msg[2] = msg.note else temp_msg[2] = "" end
@@ -199,8 +189,9 @@ function midi_event(data)
 end
 
 
+-- 
 -- CLOCK coroutines
--- **********
+-- 
 
 function pulse()
   while true do
@@ -216,14 +207,19 @@ function clock.transport.start()
   --id = clock.run(pulse)
   --running = true
 end
+
 function clock.transport.stop()
   print("transport.stop")
   running = false
 end
+
 function clock.transport.reset()
   --print("transport.reset")
 end
 
+--
+-- play notes
+--
 
 function play(msg)
   if msg.type == 'note_on' then
@@ -238,7 +234,7 @@ function play(msg)
 end
 
 --
--- Interactions
+-- Interaction
 --
 
 function key(n, z)
@@ -270,8 +266,9 @@ function enc(id,delta)
 end
 
 --
--- Render
+-- Screen Render
 --
+
 function draw_labels()
   screen.level(1)
   screen.move(col1,(line_height * 2))
@@ -289,7 +286,6 @@ function draw_labels()
 end
 
 function draw_event()
-
   for i=1,6 do
     --print("i:",i)
     buf_idx = buff_start + i - 1
@@ -312,22 +308,15 @@ function draw_event()
       screen.stroke()
     end
   end 
-
-
 end
 
 function redraw()
-  screen.clear()
-  --screen.aa(1)
-   
   tempo_disp = util.round (clock.get_tempo(), 1)
 
-  
+  screen.clear()
   draw_labels()
   if msg then
-    --tab.print(msg)
     draw_event()
-    --msg = nil
   end
   
   screen.level(3)
@@ -359,13 +348,16 @@ function redraw()
   --screen.line (116, 64)
   --screen.stroke()
 
-  
   screen.level(15)
   screen.move(0, 7)
   screen.text(devicepos .. ": ".. mdevs[devicepos])
 
   screen.update()
 end
+
+--
+-- Utils
+--
 
 function note_to_hz(note)
   return (440 / 32) * (2 ^ ((note - 9) / 12))

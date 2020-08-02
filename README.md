@@ -8,6 +8,8 @@ v0.5 @okyeron
 __Requirements:__
   * norns version 200424 (for global clock)
   * midi devices
+  * PolyPerc engine (included w/ awake) 
+
 
 __Controls:__  
 
