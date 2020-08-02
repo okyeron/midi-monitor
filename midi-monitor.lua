@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.5.1 - @okyeron
+--   0.5.2 - @okyeron
 --
 --
 --   E1 - select MIDI device
@@ -90,12 +90,12 @@ function init()
       
     end}
 
-  clock.set_source(1)
+  --clock.set_source(1)
   params:set("clock_source", 2)
   params:set("clock_tempo", default_bpm)
   
   --tempo = util.round (clock.get_tempo(), 1)
-  --tempo2 = util.round (params:get("clock_tempo"),1)
+  tempo = util.round (params:get("clock_tempo"),1)
   --print(tempo)
   --print(tempo2)
 
@@ -158,10 +158,13 @@ function midi_event(data)
   end 
 
   if msg.type == "clock" then
+    tempo = util.round (clock.get_tempo(), 1)
+    --print(tempo)
     if not clocking then
       clocking = true
       blink_id = clock.run(blink_generator, 1)
-      tempo = util.round (clock.get_tempo(), 1)
+    else
+      
     end
   else
     -- {msg.ch, msg.note , msg.vel, msg.type, msg.val}
