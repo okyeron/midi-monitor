@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.5 - @okyeron
+--   0.5.1 - @okyeron
 --
 --
 --   E1 - select MIDI device
@@ -137,7 +137,8 @@ function clear_midi_buffer()
   midi_buffer = {}
   for z=1,midi_buffer_len do
     table.insert(midi_buffer, {})
-  end 
+  end
+  buff_start = 1
 end
 
 function midi_event(data)
