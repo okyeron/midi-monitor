@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.6.1 - @okyeron
+--   0.6.2 - @okyeron
 --
 --
 --   E1 - select MIDI device
@@ -179,6 +179,10 @@ function midi_event(data)
     else
       
     end
+  elseif data[1] == 0xfe then
+    -- active sensing
+    -- do nothing
+    --print("active sensing")
   else
     -- {msg.ch, msg.note , msg.vel, msg.type, msg.val}
     temp_msg = {}
@@ -193,12 +197,11 @@ function midi_event(data)
         --temp_msg[4] = msg.type 
         temp_msg[4] = rewrite_msgtype(msg.type) 
       end
-    else 
+    else
       temp_msg[4] = "" 
     end
     if msg.val then 
       if msg.type == "pitchbend" then
-      
         temp_msg[5] = msg.val - 8192
       else
         temp_msg[5] = msg.val 
