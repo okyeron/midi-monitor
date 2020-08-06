@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.6.0 - @okyeron
+--   0.6.1 - @okyeron
 --
 --
 --   E1 - select MIDI device
@@ -59,8 +59,7 @@ end
 -- 
 
 function init()
-  norns.encoders.set_accel(1,false)
-  norns.encoders.set_sens(1,8)
+  norns.enc.sens(1,6)
   clear_midi_buffer()
   engine.amp(0)
   --_norns.rev_off()
