@@ -2,7 +2,7 @@
 
 A MIDI Monitor script for norns
 
-v0.6.0 @okyeron
+v0.6.1 @okyeron
 
 
 __Requirements:__
