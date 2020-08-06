@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.5.2 - @okyeron
+--   0.6 - @okyeron
 --
 --
 --   E1 - select MIDI device
@@ -59,6 +59,8 @@ end
 -- 
 
 function init()
+  norns.encoders.set_accel(1,false)
+  norns.encoders.set_sens(1,8)
   clear_midi_buffer()
   engine.amp(0)
   --_norns.rev_off()
@@ -141,6 +143,18 @@ function clear_midi_buffer()
   buff_start = 1
 end
 
+local msgNames = { 
+  ["pitchbend"] = "pitchbend", 
+  ["song_position"] = "songPos" ,
+  ["song_select"] = "songSelct" ,
+  ["program_change"] = "progchang" ,
+  ["channel_pressure"] = "cPressure" ,
+  ["key_pressure"] = "kPressure" }
+
+function rewrite_msgtype(msg) 
+  return msgNames[msg] or msg
+end
+
 function midi_event(data)
   msg = midi.to_msg(data)
   if msg.type == "start" then
@@ -169,6 +183,7 @@ function midi_event(data)
   else
     -- {msg.ch, msg.note , msg.vel, msg.type, msg.val}
     temp_msg = {}
+
     if msg.ch then temp_msg[1] = msg.ch else temp_msg[1] = "" end
     if msg.note then temp_msg[2] = msg.note else temp_msg[2] = "" end
     if msg.vel then temp_msg[3] = msg.vel else temp_msg[3] = "" end
@@ -176,12 +191,22 @@ function midi_event(data)
       if msg.cc then
         temp_msg[4] = msg.type ..": ".. msg.cc
       else
-        temp_msg[4] = msg.type 
+        --temp_msg[4] = msg.type 
+        temp_msg[4] = rewrite_msgtype(msg.type) 
       end
     else 
       temp_msg[4] = "" 
     end
-    if msg.val then temp_msg[5] = msg.val else temp_msg[5] = "" end
+    if msg.val then 
+      if msg.type == "pitchbend" then
+      
+        temp_msg[5] = msg.val - 8192
+      else
+        temp_msg[5] = msg.val 
+      end
+    else 
+      temp_msg[5] = "" 
+    end
     table.insert (midi_buffer, 1, temp_msg)
     
     if not mute then
@@ -191,6 +216,7 @@ function midi_event(data)
     redraw()
   end
 end
+
 
 
 -- 
@@ -354,7 +380,7 @@ function redraw()
 
   screen.level(15)
   screen.move(0, 7)
-  screen.text(devicepos .. ": ".. mdevs[devicepos])
+  screen.text(devicepos .. ": ".. truncate_txt(mdevs[devicepos], 19))
 
   screen.update()
 end
@@ -362,6 +388,17 @@ end
 --
 -- Utils
 --
+
+function truncate_txt(txt, size)
+  if string.len(txt) > size then
+    s1 = string.sub(txt, 1, 9) .. "..."
+    s2 = string.sub(txt, string.len(txt) - 5, string.len(txt))
+    s = s1..s2
+  else 
+    s = txt
+  end
+  return s
+end
 
 function note_to_hz(note)
   return (440 / 32) * (2 ^ ((note - 9) / 12))
