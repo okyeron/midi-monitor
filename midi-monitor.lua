@@ -1,6 +1,6 @@
 --  
 --   MIDI MONITOR
---   0.6 - @okyeron
+--   0.6.0 - @okyeron
 --
 --
 --   E1 - select MIDI device
