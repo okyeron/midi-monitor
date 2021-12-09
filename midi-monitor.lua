@@ -282,7 +282,7 @@ end
 function enc(id,delta)
   if id == 1 then
     --print(params:get("midi_device"))
-    params:set("midi_device", util.clamp(devicepos+delta, 1,4))
+    params:delta("midi_device", delta)
     if clocking then
       clock.cancel(blink_id)
       clocking = false
